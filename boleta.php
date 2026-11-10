@@ -1,7 +1,25 @@
 <?php
+ob_start();
 session_start();
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+
 require('fpdf.php');
 include('conexion.php');
+
+// Función compatible con PHP 8.2+ para caracteres latinos en FPDF
+if (!function_exists('safe_utf8_decode')) {
+    function safe_utf8_decode($string) {
+        if ($string === null || $string === '') {
+            return '';
+        }
+        if (function_exists('mb_convert_encoding')) {
+            return mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
+        } elseif (function_exists('iconv')) {
+            return iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $string);
+        }
+        return @utf8_decode($string);
+    }
+}
 
 if (!isset($_SESSION['correo'])) {
     header("location: index.php");
@@ -20,7 +38,7 @@ if ($stmt_al) {
     if ($query && $query->num_rows > 0) {
         $alumno = $query->fetch_assoc();
         $matricula = $alumno['Matricula'];
-        $nombre_completo = utf8_decode($alumno['Nombre'] . " " . $alumno['Apellidos']); 
+        $nombre_completo = safe_utf8_decode($alumno['Nombre'] . " " . $alumno['Apellidos']); 
     } else {
         die("No se encontraron datos del alumno.");
     }
@@ -49,16 +67,16 @@ class PDF extends FPDF {
     // Cabecera de página
     function Header() {
         $this->SetFont('Arial','B',16);
-        $this->Cell(0,10,utf8_decode('Sistema de Gestión Escolar'),0,1,'C');
+        $this->Cell(0,10,safe_utf8_decode('Sistema de Gestión Escolar'),0,1,'C');
         $this->SetFont('Arial','B',12);
-        $this->Cell(0,10,utf8_decode('Boleta Oficial de Calificaciones'),0,1,'C');
+        $this->Cell(0,10,safe_utf8_decode('Boleta Oficial de Calificaciones'),0,1,'C');
         $this->Ln(5);
     }
     // Pie de página
     function Footer() {
         $this->SetY(-15);
         $this->SetFont('Arial','I',8);
-        $this->Cell(0,10,utf8_decode('Página ').$this->PageNo().'/{nb} - Sistema Escolar',0,0,'C');
+        $this->Cell(0,10,safe_utf8_decode('Página ').$this->PageNo().'/{nb} - Sistema Escolar',0,0,'C');
     }
 }
 
@@ -69,9 +87,9 @@ $pdf->AddPage();
 $pdf->SetFont('Arial','',12);
 
 // Datos del estudiante
-$pdf->Cell(0,10,utf8_decode('Matrícula: ' . $matricula),0,1);
-$pdf->Cell(0,10,utf8_decode('Estudiante: ' . $nombre_completo),0,1);
-$pdf->Cell(0,10,utf8_decode('Fecha de emisión: ' . date('d/m/Y')),0,1);
+$pdf->Cell(0,10,safe_utf8_decode('Matrícula: ' . $matricula),0,1);
+$pdf->Cell(0,10,safe_utf8_decode('Estudiante: ' . $nombre_completo),0,1);
+$pdf->Cell(0,10,safe_utf8_decode('Fecha de emisión: ' . date('d/m/Y')),0,1);
 $pdf->Ln(5);
 
 // Colores, grosor de línea y fuente en negrita para los encabezados de la tabla
@@ -83,7 +101,7 @@ $pdf->SetFont('Arial','B',10);
 // Encabezados
 $pdf->Cell(60,10,'Materia',1,0,'C',true);
 $pdf->Cell(60,10,'Profesor',1,0,'C',true);
-$pdf->Cell(30,10,utf8_decode('Calificación'),1,0,'C',true);
+$pdf->Cell(30,10,safe_utf8_decode('Calificación'),1,0,'C',true);
 $pdf->Cell(40,10,'Fecha',1,1,'C',true);
 
 // Restauración de colores y fuentes para los datos
@@ -97,8 +115,8 @@ $fill = false;
 
 if($resultados && $resultados->num_rows > 0) {
     while($row = $resultados->fetch_assoc()) {
-        $pdf->Cell(60,10,utf8_decode($row['NombreMateria']),'LR',0,'L',$fill);
-        $pdf->Cell(60,10,utf8_decode($row['NomProfe'] . ' ' . $row['ApeProfe']),'LR',0,'L',$fill);
+        $pdf->Cell(60,10,safe_utf8_decode($row['NombreMateria']),'LR',0,'L',$fill);
+        $pdf->Cell(60,10,safe_utf8_decode($row['NomProfe'] . ' ' . $row['ApeProfe']),'LR',0,'L',$fill);
         $pdf->Cell(30,10,$row['Calificacion'],'LR',0,'C',$fill);
         $pdf->Cell(40,10,date("d/m/Y", strtotime($row['FechaRegistro'])),'LR',1,'C',$fill);
         
@@ -121,5 +139,7 @@ if($resultados && $resultados->num_rows > 0) {
     $pdf->Cell(190,10,'No hay calificaciones registradas.',1,1,'C');
 }
 
+ob_end_clean();
 $pdf->Output('I', 'Boleta_'.$matricula.'.pdf');
+exit();
 ?>
