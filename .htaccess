@@ -1,0 +1,5 @@
+# Proteger archivos sensibles contra accesos directos desde el navegador
+<FilesMatch "^\.(env|git|htaccess)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

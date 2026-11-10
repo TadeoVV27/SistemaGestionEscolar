@@ -1,0 +1,8 @@
+# Ignorar archivo de variables de entorno y credenciales sensibles
+.env
+
+# Ignorar archivos temporales
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
