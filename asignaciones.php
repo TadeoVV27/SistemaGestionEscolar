@@ -15,7 +15,7 @@ $tipo_alerta = "info";
 if (isset($_GET['eliminar_asignacion'])) {
     $id_asig_del = intval($_GET['eliminar_asignacion']);
 
-    $stmt_del = $conexion->prepare("DELETE FROM asignaciones WHERE IdAsignacion = ?");
+    $stmt_del = $conexion->prepare("DELETE FROM Asignaciones WHERE IdAsignacion = ?");
     if ($stmt_del) {
         $stmt_del->bind_param("i", $id_asig_del);
         if ($stmt_del->execute()) {
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_materia = intval($_POST['id_materia']);
 
     // Validar con sentencia preparada que no se asigne la misma materia dos veces
-    $stmt_chk = $conexion->prepare("SELECT IdAsignacion FROM asignaciones WHERE IdProfesor = ? AND IdMateria = ?");
+    $stmt_chk = $conexion->prepare("SELECT IdAsignacion FROM Asignaciones WHERE IdProfesor = ? AND IdMateria = ?");
     if ($stmt_chk) {
         $stmt_chk->bind_param("ii", $id_profesor, $id_materia);
         $stmt_chk->execute();
@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $stmt_chk->close();
 
-            $stmt_ins = $conexion->prepare("INSERT INTO asignaciones (IdProfesor, IdMateria) VALUES (?, ?)");
+            $stmt_ins = $conexion->prepare("INSERT INTO Asignaciones (IdProfesor, IdMateria) VALUES (?, ?)");
             if ($stmt_ins) {
                 $stmt_ins->bind_param("ii", $id_profesor, $id_materia);
                 if ($stmt_ins->execute()) {
@@ -65,15 +65,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // Consultas para las listas desplegables del formulario
-$profesores = $conexion->query("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM profesores ORDER BY Apellidos ASC");
-$materias = $conexion->query("SELECT IdMateria, NombreMateria FROM materias ORDER BY NombreMateria ASC");
+$profesores = $conexion->query("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM Profesores ORDER BY Apellidos ASC");
+$materias = $conexion->query("SELECT IdMateria, NombreMateria FROM Materias ORDER BY NombreMateria ASC");
 
 // FILTRO POR PROFESOR (SENTENCIA PREPARADA)
 $filtro_profesor = isset($_GET['filtro_profesor']) ? intval($_GET['filtro_profesor']) : 0;
 $nombre_profesor_filtrado = "";
 
 if ($filtro_profesor > 0) {
-    $stmt_pnom = $conexion->prepare("SELECT Nombre, Apellidos, NumeroEmpleado FROM profesores WHERE IdProfesor = ?");
+    $stmt_pnom = $conexion->prepare("SELECT Nombre, Apellidos, NumeroEmpleado FROM Profesores WHERE IdProfesor = ?");
     if ($stmt_pnom) {
         $stmt_pnom->bind_param("i", $filtro_profesor);
         $stmt_pnom->execute();
@@ -86,9 +86,9 @@ if ($filtro_profesor > 0) {
     }
 
     $stmt_asig = $conexion->prepare("SELECT a.IdAsignacion, p.IdProfesor, p.NumeroEmpleado, p.Nombre AS NombreProfesor, p.Apellidos, m.NombreMateria, m.Creditos 
-                                     FROM asignaciones a
-                                     JOIN profesores p ON a.IdProfesor = p.IdProfesor
-                                     JOIN materias m ON a.IdMateria = m.IdMateria
+                                     FROM Asignaciones a
+                                     JOIN Profesores p ON a.IdProfesor = p.IdProfesor
+                                     JOIN Materias m ON a.IdMateria = m.IdMateria
                                      WHERE a.IdProfesor = ?
                                      ORDER BY m.NombreMateria ASC");
     if ($stmt_asig) {
@@ -98,9 +98,9 @@ if ($filtro_profesor > 0) {
     }
 } else {
     $query_asignaciones = "SELECT a.IdAsignacion, p.IdProfesor, p.NumeroEmpleado, p.Nombre AS NombreProfesor, p.Apellidos, m.NombreMateria, m.Creditos 
-                           FROM asignaciones a
-                           JOIN profesores p ON a.IdProfesor = p.IdProfesor
-                           JOIN materias m ON a.IdMateria = m.IdMateria
+                           FROM Asignaciones a
+                           JOIN Profesores p ON a.IdProfesor = p.IdProfesor
+                           JOIN Materias m ON a.IdMateria = m.IdMateria
                            ORDER BY p.Apellidos ASC, m.NombreMateria ASC";
     $resultado_asignaciones = $conexion->query($query_asignaciones);
 }
@@ -345,7 +345,7 @@ $total_asignaciones_mostradas = ($resultado_asignaciones) ? $resultado_asignacio
                                     <select name="filtro_profesor" class="form-select form-select-sm" onchange="this.form.submit()">
                                         <option value="0">Ver todas las materias de todos los profesores...</option>
                                         <?php 
-                                        $lista_profes_filtro = $conexion->query("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM profesores ORDER BY Apellidos ASC");
+                                        $lista_profes_filtro = $conexion->query("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM Profesores ORDER BY Apellidos ASC");
                                         if($lista_profes_filtro) {
                                             while($pf = $lista_profes_filtro->fetch_assoc()) {
                                                 $sel = ($filtro_profesor == $pf['IdProfesor']) ? 'selected' : '';

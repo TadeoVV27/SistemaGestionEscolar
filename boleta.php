@@ -11,7 +11,7 @@ if (!isset($_SESSION['correo'])) {
 $correo_actual = $_SESSION['correo'];
 
 // Buscamos los datos del alumno que inició sesión con SENTENCIA PREPARADA
-$stmt_al = $conexion->prepare("SELECT a.Matricula, a.Nombre, a.Apellidos FROM alumnos a JOIN usuarios u ON a.IdUsuario = u.IdUsuario WHERE u.Correo = ?");
+$stmt_al = $conexion->prepare("SELECT a.Matricula, a.Nombre, a.Apellidos FROM Alumnos a JOIN Usuarios u ON a.IdUsuario = u.IdUsuario WHERE u.Correo = ?");
 if ($stmt_al) {
     $stmt_al->bind_param("s", $correo_actual);
     $stmt_al->execute();
@@ -31,9 +31,9 @@ if ($stmt_al) {
 
 // Consultamos sus calificaciones con SENTENCIA PREPARADA
 $stmt_cal = $conexion->prepare("SELECT m.NombreMateria, p.Nombre AS NomProfe, p.Apellidos AS ApeProfe, c.Calificacion, c.FechaRegistro 
-        FROM calificaciones c
-        JOIN materias m ON c.IdMateria = m.IdMateria
-        JOIN profesores p ON c.IdProfesor = p.IdProfesor
+        FROM Calificaciones c
+        JOIN Materias m ON c.IdMateria = m.IdMateria
+        JOIN Profesores p ON c.IdProfesor = p.IdProfesor
         WHERE c.Matricula = ?
         ORDER BY c.FechaRegistro DESC");
 if ($stmt_cal) {
