@@ -16,7 +16,7 @@ if (isset($_GET['eliminar_matricula'])) {
     $matricula_del = trim($_GET['eliminar_matricula']);
     
     // Obtener IdUsuario del alumno antes de borrarlo con sentencia preparada
-    $stmt_u = $conexion->prepare("SELECT IdUsuario, Nombre, Apellidos FROM Alumnos WHERE Matricula = ?");
+    $stmt_u = $conexion->prepare("SELECT IdUsuario, Nombre, Apellidos FROM alumnos WHERE Matricula = ?");
     if ($stmt_u) {
         $stmt_u->bind_param("s", $matricula_del);
         $stmt_u->execute();
@@ -29,7 +29,7 @@ if (isset($_GET['eliminar_matricula'])) {
             $stmt_u->close();
 
             // 1. Eliminar calificaciones registradas del alumno
-            $stmt_cal = $conexion->prepare("DELETE FROM Calificaciones WHERE Matricula = ?");
+            $stmt_cal = $conexion->prepare("DELETE FROM calificaciones WHERE Matricula = ?");
             if ($stmt_cal) {
                 $stmt_cal->bind_param("s", $matricula_del);
                 $stmt_cal->execute();
@@ -37,7 +37,7 @@ if (isset($_GET['eliminar_matricula'])) {
             }
 
             // 2. Eliminar al alumno
-            $stmt_al = $conexion->prepare("DELETE FROM Alumnos WHERE Matricula = ?");
+            $stmt_al = $conexion->prepare("DELETE FROM alumnos WHERE Matricula = ?");
             if ($stmt_al) {
                 $stmt_al->bind_param("s", $matricula_del);
                 $stmt_al->execute();
@@ -46,7 +46,7 @@ if (isset($_GET['eliminar_matricula'])) {
 
             // 3. Eliminar usuario de acceso
             if (!empty($id_usuario_del)) {
-                $stmt_usr = $conexion->prepare("DELETE FROM Usuarios WHERE IdUsuario = ?");
+                $stmt_usr = $conexion->prepare("DELETE FROM usuarios WHERE IdUsuario = ?");
                 if ($stmt_usr) {
                     $stmt_usr->bind_param("i", $id_usuario_del);
                     $stmt_usr->execute();
@@ -71,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $apellidos = trim($_POST['apellidos']);
 
     // 1. Validar que la matrícula no esté duplicada usando sentencia preparada
-    $stmt_chk = $conexion->prepare("SELECT Matricula FROM Alumnos WHERE Matricula = ?");
+    $stmt_chk = $conexion->prepare("SELECT Matricula FROM alumnos WHERE Matricula = ?");
     if ($stmt_chk) {
         $stmt_chk->bind_param("s", $matricula);
         $stmt_chk->execute();
@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $password_encriptada = password_hash($password_default, PASSWORD_DEFAULT);
             $rol_alumno = "Alumno";
 
-            $stmt_usr = $conexion->prepare("INSERT INTO Usuarios (Correo, Password, Rol) VALUES (?, ?, ?)");
+            $stmt_usr = $conexion->prepare("INSERT INTO usuarios (Correo, Password, Rol) VALUES (?, ?, ?)");
             if ($stmt_usr) {
                 $stmt_usr->bind_param("sss", $correo_institucional, $password_encriptada, $rol_alumno);
                 
@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt_usr->close();
 
                     // 3. Registrar al alumno vinculado a su IdUsuario mediante sentencia preparada
-                    $stmt_al = $conexion->prepare("INSERT INTO Alumnos (Matricula, Nombre, Apellidos, IdUsuario) VALUES (?, ?, ?, ?)");
+                    $stmt_al = $conexion->prepare("INSERT INTO alumnos (Matricula, Nombre, Apellidos, IdUsuario) VALUES (?, ?, ?, ?)");
                     if ($stmt_al) {
                         $stmt_al->bind_param("sssi", $matricula, $nombre, $apellidos, $id_usuario_nuevo);
                         
@@ -122,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$resultado_alumnos = $conexion->query("SELECT * FROM Alumnos ORDER BY Matricula ASC");
+$resultado_alumnos = $conexion->query("SELECT * FROM alumnos ORDER BY Matricula ASC");
 $total_alumnos = ($resultado_alumnos) ? $resultado_alumnos->num_rows : 0;
 ?>
 

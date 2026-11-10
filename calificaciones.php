@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && ($_SESSION['rol'] == 'Admin' || $_SE
     $id_profesor = intval($_POST['id_profesor']);
     $calificacion = floatval($_POST['calificacion']);
 
-    $stmt_ins = $conexion->prepare("INSERT INTO Calificaciones (Matricula, IdMateria, IdProfesor, Calificacion) VALUES (?, ?, ?, ?)");
+    $stmt_ins = $conexion->prepare("INSERT INTO calificaciones (Matricula, IdMateria, IdProfesor, Calificacion) VALUES (?, ?, ?, ?)");
     if ($stmt_ins) {
         $stmt_ins->bind_param("siid", $matricula, $id_materia, $id_profesor, $calificacion);
         if ($stmt_ins->execute()) {
@@ -36,14 +36,14 @@ if (isset($_GET['eliminar_calificacion']) && ($_SESSION['rol'] == 'Admin' || $_S
     $id_cal_del = intval($_GET['eliminar_calificacion']);
     if ($_SESSION['rol'] == 'Profesor') {
         $correo_actual = $_SESSION['correo'];
-        $stmt_del = $conexion->prepare("DELETE c FROM Calificaciones c JOIN Profesores p ON c.IdProfesor = p.IdProfesor JOIN Usuarios u ON p.IdUsuario = u.IdUsuario WHERE c.IdCalificacion = ? AND u.Correo = ?");
+        $stmt_del = $conexion->prepare("DELETE c FROM calificaciones c JOIN profesores p ON c.IdProfesor = p.IdProfesor JOIN usuarios u ON p.IdUsuario = u.IdUsuario WHERE c.IdCalificacion = ? AND u.Correo = ?");
         if ($stmt_del) {
             $stmt_del->bind_param("is", $id_cal_del, $correo_actual);
             $stmt_del->execute();
             $stmt_del->close();
         }
     } else {
-        $stmt_del = $conexion->prepare("DELETE FROM Calificaciones WHERE IdCalificacion = ?");
+        $stmt_del = $conexion->prepare("DELETE FROM calificaciones WHERE IdCalificacion = ?");
         if ($stmt_del) {
             $stmt_del->bind_param("i", $id_cal_del);
             $stmt_del->execute();
@@ -58,7 +58,7 @@ if (isset($_GET['eliminar_calificacion']) && ($_SESSION['rol'] == 'Admin' || $_S
 $id_profe_actual = null;
 if ($_SESSION['rol'] == 'Profesor') {
     $correo_actual = $_SESSION['correo'];
-    $stmt_prf = $conexion->prepare("SELECT p.IdProfesor FROM Profesores p JOIN Usuarios u ON p.IdUsuario = u.IdUsuario WHERE u.Correo = ?");
+    $stmt_prf = $conexion->prepare("SELECT p.IdProfesor FROM profesores p JOIN usuarios u ON p.IdUsuario = u.IdUsuario WHERE u.Correo = ?");
     if ($stmt_prf) {
         $stmt_prf->bind_param("s", $correo_actual);
         $stmt_prf->execute();
@@ -73,18 +73,18 @@ if ($_SESSION['rol'] == 'Profesor') {
 
 // 3. LLENAR SELECTS DEL FORMULARIO DE "ASENTAR CALIFICACIÓN"
 if ($_SESSION['rol'] == 'Admin') {
-    $alumnos = $conexion->query("SELECT Matricula, Nombre, Apellidos FROM Alumnos ORDER BY Apellidos ASC");
-    $materias = $conexion->query("SELECT IdMateria, NombreMateria FROM Materias ORDER BY NombreMateria ASC");
-    $profesores = $conexion->query("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM Profesores ORDER BY Apellidos ASC");
+    $alumnos = $conexion->query("SELECT Matricula, Nombre, Apellidos FROM alumnos ORDER BY Apellidos ASC");
+    $materias = $conexion->query("SELECT IdMateria, NombreMateria FROM materias ORDER BY NombreMateria ASC");
+    $profesores = $conexion->query("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM profesores ORDER BY Apellidos ASC");
 } else if ($_SESSION['rol'] == 'Profesor' && $id_profe_actual) {
-    $alumnos = $conexion->query("SELECT Matricula, Nombre, Apellidos FROM Alumnos ORDER BY Apellidos ASC");
-    $stmt_mprofe = $conexion->prepare("SELECT m.IdMateria, m.NombreMateria FROM Materias m JOIN Asignaciones a ON m.IdMateria = a.IdMateria WHERE a.IdProfesor = ? ORDER BY m.NombreMateria ASC");
+    $alumnos = $conexion->query("SELECT Matricula, Nombre, Apellidos FROM alumnos ORDER BY Apellidos ASC");
+    $stmt_mprofe = $conexion->prepare("SELECT m.IdMateria, m.NombreMateria FROM materias m JOIN asignaciones a ON m.IdMateria = a.IdMateria WHERE a.IdProfesor = ? ORDER BY m.NombreMateria ASC");
     if ($stmt_mprofe) {
         $stmt_mprofe->bind_param("i", $id_profe_actual);
         $stmt_mprofe->execute();
         $materias = $stmt_mprofe->get_result();
     }
-    $stmt_pinfo = $conexion->prepare("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM Profesores WHERE IdProfesor = ?");
+    $stmt_pinfo = $conexion->prepare("SELECT IdProfesor, Nombre, Apellidos, NumeroEmpleado FROM profesores WHERE IdProfesor = ?");
     if ($stmt_pinfo) {
         $stmt_pinfo->bind_param("i", $id_profe_actual);
         $stmt_pinfo->execute();
@@ -98,15 +98,15 @@ $filtro_profesor = (isset($_GET['filtro_profesor']) && $_GET['filtro_profesor'] 
 
 // 5. SELECTS PARA FORMULARIO DE FILTROS
 if ($_SESSION['rol'] == 'Profesor' && $id_profe_actual) {
-    $stmt_flm = $conexion->prepare("SELECT m.IdMateria, m.NombreMateria FROM Materias m JOIN Asignaciones a ON m.IdMateria = a.IdMateria WHERE a.IdProfesor = ?");
+    $stmt_flm = $conexion->prepare("SELECT m.IdMateria, m.NombreMateria FROM materias m JOIN asignaciones a ON m.IdMateria = a.IdMateria WHERE a.IdProfesor = ?");
     if ($stmt_flm) {
         $stmt_flm->bind_param("i", $id_profe_actual);
         $stmt_flm->execute();
         $filtro_list_materias = $stmt_flm->get_result();
     }
 } else {
-    $filtro_list_materias = $conexion->query("SELECT IdMateria, NombreMateria FROM Materias ORDER BY NombreMateria ASC");
-    $filtro_list_profes = $conexion->query("SELECT IdProfesor, Nombre, Apellidos FROM Profesores ORDER BY Apellidos ASC");
+    $filtro_list_materias = $conexion->query("SELECT IdMateria, NombreMateria FROM materias ORDER BY NombreMateria ASC");
+    $filtro_list_profes = $conexion->query("SELECT IdProfesor, Nombre, Apellidos FROM profesores ORDER BY Apellidos ASC");
 }
 
 // 6. HISTORIAL DE CALIFICACIONES SEGÚN ROL (SENTENCIAS PREPARADAS)
@@ -119,11 +119,11 @@ if ($_SESSION['rol'] == 'Alumno' || $_SESSION['rol'] == 'Estudiante') {
     $sql_base = "SELECT c.IdCalificacion, a.Matricula, a.Nombre AS NombreAlumno, a.Apellidos AS ApellidosAlumno, 
                         m.NombreMateria, p.Nombre AS NombreProfesor, p.Apellidos AS ApellidosProfesor, 
                         c.Calificacion, c.FechaRegistro 
-                 FROM Calificaciones c
-                 JOIN Alumnos a ON c.Matricula = a.Matricula
-                 JOIN Materias m ON c.IdMateria = m.IdMateria
-                 JOIN Profesores p ON c.IdProfesor = p.IdProfesor
-                 JOIN Usuarios u ON a.IdUsuario = u.IdUsuario
+                 FROM calificaciones c
+                 JOIN alumnos a ON c.Matricula = a.Matricula
+                 JOIN materias m ON c.IdMateria = m.IdMateria
+                 JOIN profesores p ON c.IdProfesor = p.IdProfesor
+                 JOIN usuarios u ON a.IdUsuario = u.IdUsuario
                  WHERE u.Correo = ?";
     $tipos .= "s";
     $params[] = $correo_actual;
@@ -143,11 +143,11 @@ if ($_SESSION['rol'] == 'Alumno' || $_SESSION['rol'] == 'Estudiante') {
     $sql_base = "SELECT c.IdCalificacion, a.Matricula, a.Nombre AS NombreAlumno, a.Apellidos AS ApellidosAlumno, 
                         m.NombreMateria, p.Nombre AS NombreProfesor, p.Apellidos AS ApellidosProfesor, 
                         c.Calificacion, c.FechaRegistro 
-                 FROM Calificaciones c
-                 JOIN Alumnos a ON c.Matricula = a.Matricula
-                 JOIN Materias m ON c.IdMateria = m.IdMateria
-                 JOIN Profesores p ON c.IdProfesor = p.IdProfesor
-                 JOIN Usuarios u ON p.IdUsuario = u.IdUsuario
+                 FROM calificaciones c
+                 JOIN alumnos a ON c.Matricula = a.Matricula
+                 JOIN materias m ON c.IdMateria = m.IdMateria
+                 JOIN profesores p ON c.IdProfesor = p.IdProfesor
+                 JOIN usuarios u ON p.IdUsuario = u.IdUsuario
                  WHERE u.Correo = ?";
     $tipos .= "s";
     $params[] = $correo_actual;
@@ -162,10 +162,10 @@ if ($_SESSION['rol'] == 'Alumno' || $_SESSION['rol'] == 'Estudiante') {
     $sql_base = "SELECT c.IdCalificacion, a.Matricula, a.Nombre AS NombreAlumno, a.Apellidos AS ApellidosAlumno, 
                         m.NombreMateria, p.Nombre AS NombreProfesor, p.Apellidos AS ApellidosProfesor, 
                         c.Calificacion, c.FechaRegistro 
-                 FROM Calificaciones c
-                 JOIN Alumnos a ON c.Matricula = a.Matricula
-                 JOIN Materias m ON c.IdMateria = m.IdMateria
-                 JOIN Profesores p ON c.IdProfesor = p.IdProfesor
+                 FROM calificaciones c
+                 JOIN alumnos a ON c.Matricula = a.Matricula
+                 JOIN materias m ON c.IdMateria = m.IdMateria
+                 JOIN profesores p ON c.IdProfesor = p.IdProfesor
                  WHERE 1=1";
 
     if ($filtro_materia !== null) {

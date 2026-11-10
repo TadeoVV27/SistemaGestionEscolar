@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // 1. Consulta con SENTENCIA PREPARADA (Blindaje contra Inyección SQL)
-    $stmt = $conexion->prepare("SELECT IdUsuario, Correo, Password, Rol FROM Usuarios WHERE Correo = ?");
+    $stmt = $conexion->prepare("SELECT IdUsuario, Correo, Password, Rol FROM usuarios WHERE Correo = ?");
     if ($stmt) {
         $stmt->bind_param("s", $correo);
         $stmt->execute();
@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Si la contraseña aún estaba en texto plano, la validamos y la encriptamos de inmediato
                 $password_valida = true;
                 $nuevo_hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt_up = $conexion->prepare("UPDATE Usuarios SET Password = ? WHERE IdUsuario = ?");
+                $stmt_up = $conexion->prepare("UPDATE usuarios SET Password = ? WHERE IdUsuario = ?");
                 if ($stmt_up) {
                     $stmt_up->bind_param("si", $nuevo_hash, $row['IdUsuario']);
                     $stmt_up->execute();

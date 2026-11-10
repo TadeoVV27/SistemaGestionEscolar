@@ -20,29 +20,29 @@ if ($rol == 'Admin') {
     $total_asignaciones = 0;
     $total_calificaciones = 0;
 
-    $res_al = $conexion->query("SELECT COUNT(*) AS total FROM Alumnos");
+    $res_al = $conexion->query("SELECT COUNT(*) AS total FROM alumnos");
     if ($res_al) { $total_alumnos = $res_al->fetch_assoc()['total']; }
 
-    $res_pr = $conexion->query("SELECT COUNT(*) AS total FROM Profesores");
+    $res_pr = $conexion->query("SELECT COUNT(*) AS total FROM profesores");
     if ($res_pr) { $total_profesores = $res_pr->fetch_assoc()['total']; }
 
-    $res_mat = $conexion->query("SELECT COUNT(*) AS total FROM Materias");
+    $res_mat = $conexion->query("SELECT COUNT(*) AS total FROM materias");
     if ($res_mat) { $total_materias = $res_mat->fetch_assoc()['total']; }
 
-    $res_asig = $conexion->query("SELECT COUNT(*) AS total FROM Asignaciones");
+    $res_asig = $conexion->query("SELECT COUNT(*) AS total FROM asignaciones");
     if ($res_asig) { $total_asignaciones = $res_asig->fetch_assoc()['total']; }
 
-    $res_cal = $conexion->query("SELECT COUNT(*) AS total FROM Calificaciones");
+    $res_cal = $conexion->query("SELECT COUNT(*) AS total FROM calificaciones");
     if ($res_cal) { $total_calificaciones = $res_cal->fetch_assoc()['total']; }
 
     $query_recientes = "SELECT c.Calificacion, c.FechaRegistro, 
                                a.Nombre AS AlumnoNom, a.Apellidos AS AlumnoApe, a.Matricula, 
                                m.NombreMateria, 
                                p.Nombre AS ProfeNom, p.Apellidos AS ProfeApe 
-                        FROM Calificaciones c 
-                        JOIN Alumnos a ON c.Matricula = a.Matricula 
-                        JOIN Materias m ON c.IdMateria = m.IdMateria 
-                        JOIN Profesores p ON c.IdProfesor = p.IdProfesor 
+                        FROM calificaciones c 
+                        JOIN alumnos a ON c.Matricula = a.Matricula 
+                        JOIN materias m ON c.IdMateria = m.IdMateria 
+                        JOIN profesores p ON c.IdProfesor = p.IdProfesor 
                         ORDER BY c.FechaRegistro DESC LIMIT 5";
     $ultimas_calificaciones = $conexion->query($query_recientes);
 }
@@ -59,8 +59,8 @@ if ($rol == 'Profesor') {
     $promedio_grupo = 0;
 
     $stmt_profe = $conexion->prepare("SELECT p.IdProfesor, p.Nombre, p.Apellidos, p.NumeroEmpleado 
-                                     FROM Profesores p 
-                                     JOIN Usuarios u ON p.IdUsuario = u.IdUsuario 
+                                     FROM profesores p 
+                                     JOIN usuarios u ON p.IdUsuario = u.IdUsuario 
                                      WHERE u.Correo = ?");
     if ($stmt_profe) {
         $stmt_profe->bind_param("s", $correo);
@@ -75,7 +75,7 @@ if ($rol == 'Profesor') {
             $stmt_profe->close();
 
             // Métricas del docente con sentencias preparadas
-            $stmt_mat = $conexion->prepare("SELECT COUNT(*) AS total FROM Asignaciones WHERE IdProfesor = ?");
+            $stmt_mat = $conexion->prepare("SELECT COUNT(*) AS total FROM asignaciones WHERE IdProfesor = ?");
             if ($stmt_mat) {
                 $stmt_mat->bind_param("i", $id_profesor);
                 $stmt_mat->execute();
@@ -84,7 +84,7 @@ if ($rol == 'Profesor') {
                 $stmt_mat->close();
             }
 
-            $stmt_ev = $conexion->prepare("SELECT COUNT(*) AS total, AVG(Calificacion) AS prom FROM Calificaciones WHERE IdProfesor = ?");
+            $stmt_ev = $conexion->prepare("SELECT COUNT(*) AS total, AVG(Calificacion) AS prom FROM calificaciones WHERE IdProfesor = ?");
             if ($stmt_ev) {
                 $stmt_ev->bind_param("i", $id_profesor);
                 $stmt_ev->execute();
@@ -99,9 +99,9 @@ if ($rol == 'Profesor') {
 
             // Lista de materias asignadas a este profesor
             $stmt_mprofe = $conexion->prepare("SELECT m.IdMateria, m.NombreMateria, m.Creditos,
-                                                (SELECT COUNT(*) FROM Calificaciones c WHERE c.IdMateria = m.IdMateria AND c.IdProfesor = ?) AS Evaluados
-                                         FROM Materias m 
-                                         JOIN Asignaciones a ON m.IdMateria = a.IdMateria 
+                                                (SELECT COUNT(*) FROM calificaciones c WHERE c.IdMateria = m.IdMateria AND c.IdProfesor = ?) AS Evaluados
+                                         FROM materias m 
+                                         JOIN asignaciones a ON m.IdMateria = a.IdMateria 
                                          WHERE a.IdProfesor = ?");
             if ($stmt_mprofe) {
                 $stmt_mprofe->bind_param("ii", $id_profesor, $id_profesor);
@@ -113,9 +113,9 @@ if ($rol == 'Profesor') {
             $stmt_mis_notas = $conexion->prepare("SELECT c.Calificacion, c.FechaRegistro, 
                                            a.Matricula, a.Nombre AS AlumnoNom, a.Apellidos AS AlumnoApe, 
                                            m.NombreMateria 
-                                    FROM Calificaciones c 
-                                    JOIN Alumnos a ON c.Matricula = a.Matricula 
-                                    JOIN Materias m ON c.IdMateria = m.IdMateria 
+                                    FROM calificaciones c 
+                                    JOIN alumnos a ON c.Matricula = a.Matricula 
+                                    JOIN materias m ON c.IdMateria = m.IdMateria 
                                     WHERE c.IdProfesor = ? 
                                     ORDER BY c.FechaRegistro DESC LIMIT 5");
             if ($stmt_mis_notas) {
@@ -139,8 +139,8 @@ if ($rol == 'Alumno') {
     $materias_reprobadas = 0;
 
     $stmt_alu = $conexion->prepare("SELECT a.Matricula, a.Nombre, a.Apellidos 
-                                  FROM Alumnos a 
-                                  JOIN Usuarios u ON a.IdUsuario = u.IdUsuario 
+                                  FROM alumnos a 
+                                  JOIN usuarios u ON a.IdUsuario = u.IdUsuario 
                                   WHERE u.Correo = ?");
     if ($stmt_alu) {
         $stmt_alu->bind_param("s", $correo);
@@ -154,7 +154,7 @@ if ($rol == 'Alumno') {
             $stmt_alu->close();
 
             // Métricas académicas con sentencias preparadas
-            $stmt_prom = $conexion->prepare("SELECT AVG(Calificacion) AS prom, COUNT(*) AS total FROM Calificaciones WHERE Matricula = ?");
+            $stmt_prom = $conexion->prepare("SELECT AVG(Calificacion) AS prom, COUNT(*) AS total FROM calificaciones WHERE Matricula = ?");
             if ($stmt_prom) {
                 $stmt_prom->bind_param("s", $matricula);
                 $stmt_prom->execute();
@@ -167,7 +167,7 @@ if ($rol == 'Alumno') {
                 $stmt_prom->close();
             }
 
-            $stmt_aprob = $conexion->prepare("SELECT COUNT(*) AS total FROM Calificaciones WHERE Matricula = ? AND Calificacion >= 70");
+            $stmt_aprob = $conexion->prepare("SELECT COUNT(*) AS total FROM calificaciones WHERE Matricula = ? AND Calificacion >= 70");
             if ($stmt_aprob) {
                 $stmt_aprob->bind_param("s", $matricula);
                 $stmt_aprob->execute();
@@ -176,7 +176,7 @@ if ($rol == 'Alumno') {
                 $stmt_aprob->close();
             }
 
-            $stmt_rep = $conexion->prepare("SELECT COUNT(*) AS total FROM Calificaciones WHERE Matricula = ? AND Calificacion < 70");
+            $stmt_rep = $conexion->prepare("SELECT COUNT(*) AS total FROM calificaciones WHERE Matricula = ? AND Calificacion < 70");
             if ($stmt_rep) {
                 $stmt_rep->bind_param("s", $matricula);
                 $stmt_rep->execute();
@@ -189,9 +189,9 @@ if ($rol == 'Alumno') {
             $stmt_kardex = $conexion->prepare("SELECT m.NombreMateria, m.Creditos, 
                                         p.Nombre AS ProfeNom, p.Apellidos AS ProfeApe, 
                                         c.Calificacion, c.FechaRegistro 
-                                 FROM Calificaciones c 
-                                 JOIN Materias m ON c.IdMateria = m.IdMateria 
-                                 JOIN Profesores p ON c.IdProfesor = p.IdProfesor 
+                                 FROM calificaciones c 
+                                 JOIN materias m ON c.IdMateria = m.IdMateria 
+                                 JOIN profesores p ON c.IdProfesor = p.IdProfesor 
                                  WHERE c.Matricula = ? 
                                  ORDER BY c.FechaRegistro DESC");
             if ($stmt_kardex) {

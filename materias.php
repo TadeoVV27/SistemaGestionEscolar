@@ -15,7 +15,7 @@ $tipo_alerta = "info";
 if (isset($_GET['eliminar_materia'])) {
     $id_mat_del = intval($_GET['eliminar_materia']);
 
-    $stmt_chk = $conexion->prepare("SELECT NombreMateria FROM Materias WHERE IdMateria = ?");
+    $stmt_chk = $conexion->prepare("SELECT NombreMateria FROM materias WHERE IdMateria = ?");
     if ($stmt_chk) {
         $stmt_chk->bind_param("i", $id_mat_del);
         $stmt_chk->execute();
@@ -26,7 +26,7 @@ if (isset($_GET['eliminar_materia'])) {
             $stmt_chk->close();
 
             // 1. Eliminar asignaciones vinculadas a esta materia
-            $stmt_asig = $conexion->prepare("DELETE FROM Asignaciones WHERE IdMateria = ?");
+            $stmt_asig = $conexion->prepare("DELETE FROM asignaciones WHERE IdMateria = ?");
             if ($stmt_asig) {
                 $stmt_asig->bind_param("i", $id_mat_del);
                 $stmt_asig->execute();
@@ -34,7 +34,7 @@ if (isset($_GET['eliminar_materia'])) {
             }
 
             // 2. Eliminar calificaciones vinculadas a esta materia
-            $stmt_cal = $conexion->prepare("DELETE FROM Calificaciones WHERE IdMateria = ?");
+            $stmt_cal = $conexion->prepare("DELETE FROM calificaciones WHERE IdMateria = ?");
             if ($stmt_cal) {
                 $stmt_cal->bind_param("i", $id_mat_del);
                 $stmt_cal->execute();
@@ -42,7 +42,7 @@ if (isset($_GET['eliminar_materia'])) {
             }
 
             // 3. Eliminar la materia
-            $stmt_del = $conexion->prepare("DELETE FROM Materias WHERE IdMateria = ?");
+            $stmt_del = $conexion->prepare("DELETE FROM materias WHERE IdMateria = ?");
             if ($stmt_del) {
                 $stmt_del->bind_param("i", $id_mat_del);
                 if ($stmt_del->execute()) {
@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre_materia = trim($_POST['nombre_materia']);
     $creditos = intval($_POST['creditos']);
 
-    $stmt_m = $conexion->prepare("SELECT NombreMateria FROM Materias WHERE NombreMateria = ?");
+    $stmt_m = $conexion->prepare("SELECT NombreMateria FROM materias WHERE NombreMateria = ?");
     if ($stmt_m) {
         $stmt_m->bind_param("s", $nombre_materia);
         $stmt_m->execute();
@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $stmt_m->close();
 
-            $stmt_ins = $conexion->prepare("INSERT INTO Materias (NombreMateria, Creditos) VALUES (?, ?)");
+            $stmt_ins = $conexion->prepare("INSERT INTO materias (NombreMateria, Creditos) VALUES (?, ?)");
             if ($stmt_ins) {
                 $stmt_ins->bind_param("si", $nombre_materia, $creditos);
                 if ($stmt_ins->execute()) {
@@ -96,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$resultado_materias = $conexion->query("SELECT * FROM Materias ORDER BY NombreMateria ASC");
+$resultado_materias = $conexion->query("SELECT * FROM materias ORDER BY NombreMateria ASC");
 $total_materias = ($resultado_materias) ? $resultado_materias->num_rows : 0;
 ?>
 

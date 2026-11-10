@@ -7,7 +7,7 @@ include("conexion.php");
 // 1. Asegurar que la columna Password tenga longitud suficiente (VARCHAR 255)
 // Los hashes de password_hash() miden 60 caracteres.
 $alerta_columna = "";
-$modificar_col = $conexion->query("ALTER TABLE Usuarios MODIFY Password VARCHAR(255) NOT NULL");
+$modificar_col = $conexion->query("ALTER TABLE usuarios MODIFY Password VARCHAR(255) NOT NULL");
 if ($modificar_col) {
     $alerta_columna = "Columna 'Password' ajustada a VARCHAR(255) con éxito.";
 } else {
@@ -15,7 +15,7 @@ if ($modificar_col) {
 }
 
 // 2. Recorrer todos los usuarios y encriptar los que estén en texto plano
-$resultado = $conexion->query("SELECT IdUsuario, Correo, Password FROM Usuarios");
+$resultado = $conexion->query("SELECT IdUsuario, Correo, Password FROM usuarios");
 $total_migrados = 0;
 $total_ya_encriptados = 0;
 $detalles = [];
@@ -30,7 +30,7 @@ if ($resultado && $resultado->num_rows > 0) {
         $info = password_get_info($pwd_actual);
         if ($info['algo'] === 0 || $info['algoName'] === 'unknown' || !str_starts_with($pwd_actual, '$2y$')) {
             $nuevo_hash = password_hash($pwd_actual, PASSWORD_DEFAULT);
-            $stmt = $conexion->prepare("UPDATE Usuarios SET Password = ? WHERE IdUsuario = ?");
+            $stmt = $conexion->prepare("UPDATE usuarios SET Password = ? WHERE IdUsuario = ?");
             if ($stmt) {
                 $stmt->bind_param("si", $nuevo_hash, $id);
                 $stmt->execute();

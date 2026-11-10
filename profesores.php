@@ -16,7 +16,7 @@ if (isset($_GET['eliminar_profesor'])) {
     $id_profe_del = intval($_GET['eliminar_profesor']);
     
     // Obtener datos del profesor antes de eliminar
-    $stmt_u = $conexion->prepare("SELECT IdUsuario, Nombre, Apellidos, NumeroEmpleado FROM Profesores WHERE IdProfesor = ?");
+    $stmt_u = $conexion->prepare("SELECT IdUsuario, Nombre, Apellidos, NumeroEmpleado FROM profesores WHERE IdProfesor = ?");
     if ($stmt_u) {
         $stmt_u->bind_param("i", $id_profe_del);
         $stmt_u->execute();
@@ -30,7 +30,7 @@ if (isset($_GET['eliminar_profesor'])) {
             $stmt_u->close();
 
             // 1. Eliminar asignaciones vinculadas a este profesor
-            $stmt_asig = $conexion->prepare("DELETE FROM Asignaciones WHERE IdProfesor = ?");
+            $stmt_asig = $conexion->prepare("DELETE FROM asignaciones WHERE IdProfesor = ?");
             if ($stmt_asig) {
                 $stmt_asig->bind_param("i", $id_profe_del);
                 $stmt_asig->execute();
@@ -38,7 +38,7 @@ if (isset($_GET['eliminar_profesor'])) {
             }
 
             // 2. Eliminar calificaciones registradas por este docente
-            $stmt_cal = $conexion->prepare("DELETE FROM Calificaciones WHERE IdProfesor = ?");
+            $stmt_cal = $conexion->prepare("DELETE FROM calificaciones WHERE IdProfesor = ?");
             if ($stmt_cal) {
                 $stmt_cal->bind_param("i", $id_profe_del);
                 $stmt_cal->execute();
@@ -46,7 +46,7 @@ if (isset($_GET['eliminar_profesor'])) {
             }
 
             // 3. Eliminar de la tabla Profesores
-            $stmt_pr = $conexion->prepare("DELETE FROM Profesores WHERE IdProfesor = ?");
+            $stmt_pr = $conexion->prepare("DELETE FROM profesores WHERE IdProfesor = ?");
             if ($stmt_pr) {
                 $stmt_pr->bind_param("i", $id_profe_del);
                 $stmt_pr->execute();
@@ -55,7 +55,7 @@ if (isset($_GET['eliminar_profesor'])) {
 
             // 4. Eliminar cuenta de usuario
             if (!empty($id_usuario_del)) {
-                $stmt_usr = $conexion->prepare("DELETE FROM Usuarios WHERE IdUsuario = ?");
+                $stmt_usr = $conexion->prepare("DELETE FROM usuarios WHERE IdUsuario = ?");
                 if ($stmt_usr) {
                     $stmt_usr->bind_param("i", $id_usuario_del);
                     $stmt_usr->execute();
@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $apellidos = trim($_POST['apellidos']);
 
     // 1. Validar duplicado de número de empleado con sentencia preparada
-    $stmt_chk = $conexion->prepare("SELECT NumeroEmpleado FROM Profesores WHERE NumeroEmpleado = ?");
+    $stmt_chk = $conexion->prepare("SELECT NumeroEmpleado FROM profesores WHERE NumeroEmpleado = ?");
     if ($stmt_chk) {
         $stmt_chk->bind_param("s", $num_empleado);
         $stmt_chk->execute();
@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $password_encriptada = password_hash($password_default, PASSWORD_DEFAULT);
             $rol_profe = "Profesor";
 
-            $stmt_usr = $conexion->prepare("INSERT INTO Usuarios (Correo, Password, Rol) VALUES (?, ?, ?)");
+            $stmt_usr = $conexion->prepare("INSERT INTO usuarios (Correo, Password, Rol) VALUES (?, ?, ?)");
             if ($stmt_usr) {
                 $stmt_usr->bind_param("sss", $correo_institucional, $password_encriptada, $rol_profe);
 
@@ -108,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt_usr->close();
 
                     // 3. Registrar al profesor con sentencia preparada
-                    $stmt_pr = $conexion->prepare("INSERT INTO Profesores (NumeroEmpleado, Nombre, Apellidos, IdUsuario) VALUES (?, ?, ?, ?)");
+                    $stmt_pr = $conexion->prepare("INSERT INTO profesores (NumeroEmpleado, Nombre, Apellidos, IdUsuario) VALUES (?, ?, ?, ?)");
                     if ($stmt_pr) {
                         $stmt_pr->bind_param("sssi", $num_empleado, $nombre, $apellidos, $id_usuario_nuevo);
 
@@ -131,7 +131,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$resultado_profesores = $conexion->query("SELECT * FROM Profesores ORDER BY Apellidos ASC");
+$resultado_profesores = $conexion->query("SELECT * FROM profesores ORDER BY Apellidos ASC");
 $total_profesores = ($resultado_profesores) ? $resultado_profesores->num_rows : 0;
 ?>
 
